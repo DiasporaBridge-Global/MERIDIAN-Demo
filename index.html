@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MERIDIAN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600&display=swap');
+
+        :root {
+            --gold: #c9a84c;
+            --gold-bright: #e8c96d;
+            --gold-dim: #7a6230;
+            --gold-glow: rgba(201,168,76,0.25);
+            --obsidian: #000000;
+            --glass: rgba(6,6,6,0.75);
+            --border: rgba(201,168,76,0.12);
+            --border-bright: rgba(201,168,76,0.35);
+            --text-dim: rgba(255,255,255,0.25);
+            --text-mid: rgba(255,255,255,0.55);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--obsidian);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* ── CUSTOM CURSOR ── */
+        #cursor {
+            position: fixed;
+            width: 6px; height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 10px var(--gold), 0 0 20px var(--gold-glow);
+        }
+
+        #cursor-ring {
+            position: fixed;
+            width: 28px; height: 28px;
+            border: 1px solid rgba(201,168,76,0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: all 0.15s ease;
+        }
+
+        /* ── PARTICLE CANVAS ── */
+        #cosmos {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* ── VAULT WRAPPER ── */
+        #vault-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ── VAULT CARD ── */
+        #vault {
+            background: var(--glass);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid var(--border-bright);
+            border-radius: 24px;
+            padding: 50px 28px 40px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Gold corner accents */
+        #vault::before, #vault::after {
+            content: '';
+            position: absolute;
+            width: 40px; height: 40px;
+            border-color: var(--gold);
+            border-style: solid;
+            opacity: 0.4;
+        }
+        #vault::before { top: 15px; left: 15px; border-width: 1px 0 0 1px; border-radius: 4px 0 0 0; }
+        #vault::after  { bottom: 15px; right: 15px; border-width: 0 1px 1px 0; border-radius: 0 0 4px 0; }
+
+        .vault-inner::before, .vault-inner::after {
+            content: '';
+            position: absolute;
+            width: 40px; height: 40px;
+            border-color: var(--gold);
+            border-style: solid;
+            opacity: 0.4;
+        }
+        .vault-inner::before { top: 15px; right: 15px; border-width: 1px 1px 0 0; border-radius: 0 4px 0 0; }
+        .vault-inner::after  { bottom: 15px; left: 15px; border-width: 0 0 1px 1px; border-radius: 0 0 0 4px; }
+
+        .vault-inner { position: relative; }
+
+        /* Scan line effect */
+        #vault .scan-line {
+            position: absolute;
+            top: -100%;
+            left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(201,168,76,0.15), transparent);
+            animation: scan 6s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { top: -5%; }
+            100% { top: 105%; }
+        }
+
+        .meridian-title {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 8px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 40px var(--gold-glow), 0 0 80px rgba(201,168,76,0.1);
+        }
+
+        .meridian-sub {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 35px;
+            font-style: italic;
+        }
+
+        /* Step dots */
+        .step-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .step-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            transition: all 0.5s ease;
+        }
+        .step-line {
+            width: 40px; height: 1px;
+            background: #2a2a2a;
+            transition: all 0.5s ease;
+        }
+        .step-dot.active { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        .step-dot.done { background: var(--gold-dim); }
+        .step-line.done { background: var(--gold-dim); }
+
+        .step-label {
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 28px;
+            text-transform: uppercase;
+        }
+
+        /* Input */
+        .input-wrap {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-wrap label {
+            position: absolute;
+            top: -9px; left: 12px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--gold);
+            background: #060606;
+            padding: 0 6px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        input[type="password"],
+        input[type="text"],
+        input[type="url"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            letter-spacing: 3px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--border-bright);
+            box-shadow: 0 0 20px rgba(201,168,76,0.08);
+        }
+
+        input.error {
+            border-color: rgba(255,80,80,0.5);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* OTP */
+        .otp-grid {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .otp-grid input {
+            width: 44px;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0;
+            border-radius: 8px;
+        }
+
+        .otp-hint {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            line-height: 2;
+        }
+
+        .otp-hint .demo-code {
+            color: rgba(201,168,76,0.8);
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            letter-spacing: 3px;
+        }
+
+        /* Button */
+        .btn-gold {
+            width: 100%;
+            padding: 17px;
+            background: linear-gradient(135deg, #c9a84c 0%, #8a6f2e 50%, #c9a84c 100%);
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-family: 'Syncopate', sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 3px;
+            cursor: none;
+            text-transform: uppercase;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-gold:hover {
+            background-position: right center;
+            box-shadow: 0 8px 30px rgba(201,168,76,0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-gold:active { transform: translateY(1px); }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn-gold.loading { color: transparent; pointer-events: none; }
+        .btn-gold.loading::after {
+            content: '';
+            position: absolute;
+            top:50%; left:50%;
+            width:16px; height:16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+            display: none;
+            text-transform: uppercase;
+        }
+
+        .back-link {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            cursor: none;
+            margin-top: 16px;
+            display: block;
+            transition: color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-link:hover { color: var(--gold); }
+
+        /* ── DASHBOARD ── */
+        #dashboard {
+            display: none;
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            padding: 25px 20px;
+            animation: fadeUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dash-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .dash-brand {
+            font-family: 'Syncopate', sans-serif;
+            color: var(--gold);
+            font-size: 13px;
+            letter-spacing: 5px;
+            text-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        .dash-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .session-box {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            border: 1px solid #1a1a1a;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+
+        .session-box span { color: var(--gold); }
+
+        .btn-sm {
+            padding: 7px 14px;
+            border-radius: 7px;
+            font-family: 'Syncopate', sans-serif;
+            font-size: 8px;
+            letter-spacing: 2px;
+            cursor: none;
+            text-transform: uppercase;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-new {
+            background: linear-gradient(135deg, #c9a84c, #8a6f2e);
+            color: #000;
+        }
+        .btn-new:hover { box-shadow: 0 4px 20px var(--gold-glow); }
+
+        .btn-lock {
+            background: transparent;
+            border: 1px solid #1a1a1a;
+            color: #333;
+            transition: all 0.3s;
+        }
+        .btn-lock:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.6); }
+
+        .dash-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin-bottom: 20px;
+        }
+
+        /* Direction toggle */
+        .dir-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .dir-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: none;
+            text-align: center;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .dir-btn.active {
+            border-color: var(--border-bright);
+            color: var(--gold);
+            background: rgba(201,168,76,0.05);
+            box-shadow: 0 0 15px rgba(201,168,76,0.08);
+        }
+
+        /* Table */
+        .scroll-box {
+            background: rgba(5,5,5,0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 780px; font-size: 12px; }
+
+        th {
+            padding: 16px 14px;
+            color: var(--gold);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #0f0f0f;
+            text-align: left;
+            white-space: nowrap;
+            font-weight: 400;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-family: 'Rajdhani', sans-serif;
+            vertical-align: middle;
+            color: var(--text-mid);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(201,168,76,0.02); }
+
+        .code-cell {
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 13px;
+        }
+
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-family: 'Syncopate', sans-serif;
+            white-space: nowrap;
+        }
+
+        .s-processing { background: rgba(201,168,76,0.08); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+        .s-complete   { background: rgba(50,200,100,0.08); color: #50c878; border: 1px solid rgba(50,200,100,0.2); }
+        .s-pending    { background: rgba(255,255,255,0.03); color: #444; border: 1px solid #1a1a1a; }
+
+        .btn-act {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #1a1a1a;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 9px;
+            cursor: none;
+            transition: all 0.2s;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px;
+            margin: 2px;
+        }
+
+        .btn-act:hover { border-color: var(--border-bright); color: var(--gold); }
+        .btn-del:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #1a1a1a;
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Syncopate', sans-serif;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 7px;
+            letter-spacing: 3px;
+            color: rgba(201,168,76,0.15);
+            white-space: nowrap;
+            z-index: 5;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        /* ── MODAL ── */
+        .modal-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(12px);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-bg.open { display: flex; }
+
+        .modal-card {
+            background: rgba(6,6,6,0.98);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 28px;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeUp 0.3s ease;
+            position: relative;
+        }
+
+        .modal-card::before, .modal-card::after {
+            content: '';
+            position: absolute;
+            width: 30px; height: 30px;
+            border-color: var(--gold);
+            border-style: solid;
+            opacity: 0.3;
+        }
+        .modal-card::before { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+        .modal-card::after  { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+
+        .modal-title {
+            font-family: 'Syncopate', sans-serif;
+            color: var(--gold);
+            font-size: 10px;
+            letter-spacing: 4px;
+            margin-bottom: 28px;
+            font-weight: 400;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            outline: none;
+            appearance: none;
+            cursor: none;
+        }
+
+        .modal-row { display: flex; gap: 10px; margin-top: 8px; }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            color: #333;
+            font-family: 'Syncopate', sans-serif;
+            font-size: 8px;
+            letter-spacing: 2px;
+            cursor: none;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .btn-cancel:hover { border-color: #333; color: #666; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+        /* Demo Banner */
+        #demo-banner {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 9990;
+            background: rgba(0,0,0,0.92);
+            border-bottom: 1px solid rgba(201,168,76,0.25);
+            padding: 10px 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #demo-banner .demo-label {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 8px;
+            letter-spacing: 3px;
+            color: rgba(201,168,76,0.6);
+            text-transform: uppercase;
+        }
+
+        #demo-banner .demo-notice {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+        }
+
+        #demo-banner .btn-request {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: #000;
+            background: linear-gradient(135deg, #c9a84c, #8a6f2e);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            white-space: nowrap;
+            transition: opacity 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        #demo-banner .btn-request:hover { opacity: 0.8; }
+
+        /* Auth burst animation */
+        @keyframes burst {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(0.95); opacity: 0; }
+        }
+
+        .bursting { animation: burst 0.6s ease forwards; }
+    </style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- PARTICLE COSMOS -->
+<canvas id="cosmos"></canvas>
+
+<!-- VAULT -->
+<div id="vault-wrapper">
+    <div id="vault">
+        <div class="scan-line"></div>
+        <div class="vault-inner">
+            <div class="meridian-title">MERIDIAN</div>
+            <div class="meridian-sub">Secure Translation Delivery Node</div>
+
+            <div class="step-row">
+                <div class="step-dot active" id="d1"></div>
+                <div class="step-line" id="dl"></div>
+                <div class="step-dot" id="d2"></div>
+            </div>
+            <div class="step-label" id="slabel">Token Verification</div>
+
+            <!-- Step 1 -->
+            <div id="s1">
+                <div class="input-wrap">
+                    <label>Access Token</label>
+                    <input type="password" id="tkn" placeholder="••••••••••••••" autocomplete="off">
+                </div>
+                <div class="error-msg" id="terr">⬡ Invalid Token — Access Denied</div>
+                <button class="btn-gold" id="tbtn" onclick="verifyToken()">Initialize</button>
+            </div>
+
+            <!-- Step 2 -->
+            <div id="s2" style="display:none">
+                <div class="otp-hint">
+                    Two-Factor Authentication Required
+                    <span class="demo-code">Demo Code → 4 · 8 · 1 · 2 · 3 · 6</span>
+                </div>
+                <div class="otp-grid">
+                    <input type="tel" maxlength="1" id="o1" class="otp-input" oninput="on(this,'o2')" onkeydown="ob(event,this,'')">
+                    <input type="tel" maxlength="1" id="o2" class="otp-input" oninput="on(this,'o3')" onkeydown="ob(event,this,'o1')">
+                    <input type="tel" maxlength="1" id="o3" class="otp-input" oninput="on(this,'o4')" onkeydown="ob(event,this,'o2')">
+                    <input type="tel" maxlength="1" id="o4" class="otp-input" oninput="on(this,'o5')" onkeydown="ob(event,this,'o3')">
+                    <input type="tel" maxlength="1" id="o5" class="otp-input" oninput="on(this,'o6')" onkeydown="ob(event,this,'o4')">
+                    <input type="tel" maxlength="1" id="o6" class="otp-input" oninput="on(this,'')"   onkeydown="ob(event,this,'o5')">
+                </div>
+                <div class="error-msg" id="oerr">⬡ Invalid Code — Authentication Failed</div>
+                <button class="btn-gold" id="obtn" onclick="verifyOTP()">Authenticate</button>
+                <span class="back-link" onclick="goBack()">↩ Return to Token</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+    <div class="dash-top">
+        <div class="dash-brand">Meridian</div>
+        <div class="dash-meta">
+            <div class="session-box">Session <span id="stimer">30:00</span></div>
+            <button class="btn-sm btn-new" onclick="openModal()">+ New</button>
+            <button class="btn-sm btn-lock" onclick="doLogout()">Lock</button>
+        </div>
+    </div>
+    <div class="dash-divider"></div>
+
+    <div class="dir-toggle">
+        <div class="dir-btn active" id="dir-ta" onclick="setDir('ta')">Tamil → English</div>
+        <div class="dir-btn" id="dir-et" onclick="setDir('et')">English → Tamil</div>
+    </div>
+
+    <div class="scroll-box">
+        <table>
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Source Video</th>
+                    <th>English Text</th>
+                    <th>Tamil Text</th>
+                    <th>Eng SRT</th>
+                    <th>Tam SRT</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ptable">
+                <tr id="emptyRow">
+                    <td colspan="8">
+                        <div class="empty-state">No Active Projects — Initialize New Transfer</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- DEMO BANNER -->
+<div id="wmark" style="display:none">
+    <div id="demo-banner" style="display:flex">
+        <div>
+            <div class="demo-label">⬡ Demo Access — Not For Operational Use</div>
+            <div class="demo-notice">This is a demonstration portal. No real data is stored or transmitted.</div>
+        </div>
+        <a class="btn-request" href="mailto:diasporabridge.global@gmail.com?subject=MERIDIAN%20Full%20Access%20Request">Request Full Access</a>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+    <div class="modal-card">
+        <div class="modal-title">Initialize New Project</div>
+        <div class="input-wrap">
+            <label>Project Code</label>
+            <input type="text" id="mc" placeholder="e.g. DB-002">
+        </div>
+        <div class="input-wrap">
+            <label>Source Video URL</label>
+            <input type="url" id="mv" placeholder="https://...">
+        </div>
+        <select id="ms">
+            <option value="PENDING">Pending</option>
+            <option value="PROCESSING">Processing</option>
+            <option value="COMPLETE">Complete</option>
+        </select>
+        <div class="modal-row">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-gold" style="flex:1;padding:14px;" onclick="addProject()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── CONFIG (DEMO — backend will replace this) ──
+const VALID_TOKEN = 'MERIDIAN-2026';
+const VALID_OTP   = '481236';
+const IS_DEMO     = true;
+
+let projects = [];
+let sessionSec = 1800;
+let sessionTick;
+let currentDir = 'ta';
+
+// ── CURSOR ──
+const cur  = document.getElementById('cursor');
+const curR = document.getElementById('cursor-ring');
+let mx = -100, my = -100, rx = -100, ry = -100;
+
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+document.addEventListener('touchmove', e => {
+    mx = e.touches[0].clientX;
+    my = e.touches[0].clientY;
+}, { passive: true });
+
+(function animCursor() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    cur.style.left  = mx + 'px';
+    cur.style.top   = my + 'px';
+    curR.style.left = rx + 'px';
+    curR.style.top  = ry + 'px';
+    requestAnimationFrame(animCursor);
+})();
+
+// ── PARTICLE COSMOS ──
+const canvas = document.getElementById('cosmos');
+const ctx    = canvas.getContext('2d');
+let W, H, particles = [], mouse = { x: -999, y: -999 };
+
+function resizeCanvas() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+
+function initParticles() {
+    particles = [];
+    const count = Math.floor((W * H) / 9000);
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            ox: 0, oy: 0,
+            vx: (Math.random() - 0.5) * 0.12,
+            vy: (Math.random() - 0.5) * 0.12,
+            r: Math.random() * 1.2 + 0.3,
+            alpha: Math.random() * 0.5 + 0.1,
+            gold: Math.random() > 0.65
+        });
+    }
+}
+
+function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+        // Mouse repulsion
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const repel = 90;
+        if (dist < repel) {
+            const force = (repel - dist) / repel;
+            p.x += dx / dist * force * 2.5;
+            p.y += dy / dist * force * 2.5;
+        } else {
+            // Drift back
+            p.x += (p.ox - p.x) * 0.015;
+            p.y += (p.oy - p.y) * 0.015;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = W;
+        if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H;
+        if (p.y > H) p.y = 0;
+
+        p.ox = p.x;
+        p.oy = p.y;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.gold
+            ? `rgba(201,168,76,${p.alpha})`
+            : `rgba(255,255,255,${p.alpha * 0.4})`;
+        ctx.fill();
+
+        if (p.gold && p.r > 0.8) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(201,168,76,${p.alpha * 0.08})`;
+            ctx.fill();
+        }
+    });
+    requestAnimationFrame(drawParticles);
+}
+
+document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+document.addEventListener('touchmove', e => {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
+
+window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+resizeCanvas();
+initParticles();
+drawParticles();
+
+// ── AUTH FLOW ──
+function verifyToken() {
+    const val = document.getElementById('tkn').value.trim().toUpperCase();
+    const btn = document.getElementById('tbtn');
+    const err = document.getElementById('terr');
+    err.style.display = 'none';
+    btn.classList.add('loading');
+    setTimeout(() => {
+        btn.classList.remove('loading');
+        if (val === VALID_TOKEN) {
+            toStep2();
+        } else {
+            document.getElementById('tkn').classList.add('error');
+            err.style.display = 'block';
+            setTimeout(() => document.getElementById('tkn').classList.remove('error'), 500);
+        }
+    }, 1200);
+}
+
+function toStep2() {
+    document.getElementById('s1').style.display = 'none';
+    document.getElementById('s2').style.display = 'block';
+    document.getElementById('d1').classList.replace('active','done');
+    document.getElementById('dl').classList.add('done');
+    document.getElementById('d2').classList.add('active');
+    document.getElementById('slabel').textContent = '2FA Authentication';
+    document.getElementById('o1').focus();
+}
+
+function goBack() {
+    document.getElementById('s2').style.display = 'none';
+    document.getElementById('s1').style.display = 'block';
+    document.getElementById('d2').classList.remove('active');
+    document.getElementById('dl').classList.remove('done');
+    document.getElementById('d1').classList.remove('done');
+    document.getElementById('d1').classList.add('active');
+    document.getElementById('slabel').textContent = 'Token Verification';
+    ['o1','o2','o3','o4','o5','o6'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('oerr').style.display = 'none';
+}
+
+function on(el, nid) { if (el.value.length===1 && nid) document.getElementById(nid).focus(); }
+function ob(e, el, pid) { if (e.key==='Backspace' && el.value==='' && pid) document.getElementById(pid).focus(); }
+
+function verifyOTP() {
+    const code = ['o1','o2','o3','o4','o5','o6'].map(id=>document.getElementById(id).value).join('');
+    const btn  = document.getElementById('obtn');
+    const err  = document.getElementById('oerr');
+    err.style.display = 'none';
+    btn.classList.add('loading');
+    setTimeout(() => {
+        btn.classList.remove('loading');
+        if (code === VALID_OTP) {
+            authSuccess();
+        } else {
+            err.style.display = 'block';
+            ['o1','o2','o3','o4','o5','o6'].forEach(id=>{
+                const el=document.getElementById(id);
+                el.classList.add('error');
+                el.value='';
+                setTimeout(()=>el.classList.remove('error'),500);
+            });
+            document.getElementById('o1').focus();
+        }
+    }, 1000);
+}
+
+function authSuccess() {
+    const vault = document.getElementById('vault');
+    vault.classList.add('bursting');
+    setTimeout(() => {
+        document.getElementById('vault-wrapper').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        if (IS_DEMO) {
+        const banner = document.getElementById('wmark');
+        banner.style.display = 'block';
+        document.getElementById('dashboard').style.paddingTop = '60px';
+    }
+        startSession();
+    }, 600);
+}
+
+// ── SESSION ──
+function startSession() {
+    sessionSec = 1800;
+    tickTimer();
+    sessionTick = setInterval(() => {
+        sessionSec--;
+        tickTimer();
+        if (sessionSec <= 0) doLogout();
+    }, 1000);
+}
+
+function tickTimer() {
+    const m = String(Math.floor(sessionSec/60)).padStart(2,'0');
+    const s = String(sessionSec%60).padStart(2,'0');
+    document.getElementById('stimer').textContent = m+':'+s;
+}
+
+function doLogout() {
+    clearInterval(sessionTick);
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('wmark').style.display = 'none';
+    document.getElementById('vault-wrapper').style.display = 'flex';
+    document.getElementById('vault').classList.remove('bursting');
+    goBack();
+    document.getElementById('tkn').value = '';
+    document.getElementById('terr').style.display = 'none';
+}
+
+// ── DIRECTION TOGGLE ──
+function setDir(d) {
+    currentDir = d;
+    document.getElementById('dir-ta').classList.toggle('active', d==='ta');
+    document.getElementById('dir-et').classList.toggle('active', d==='et');
+    renderTable();
+}
+
+// ── MODAL ──
+function openModal()  { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+// ── PROJECT ──
+function addProject() {
+    const code = document.getElementById('mc').value.trim().toUpperCase();
+    const vid  = document.getElementById('mv').value.trim();
+    const stat = document.getElementById('ms').value;
+    if (!code || !vid) return;
+    projects.push({ code, vid, stat, dir: currentDir });
+    renderTable();
+    closeModal();
+    document.getElementById('mc').value = '';
+    document.getElementById('mv').value = '';
+}
+
+function deleteProject(i) { projects.splice(i,1); renderTable(); }
+
+function renderTable() {
+    const tbody = document.getElementById('ptable');
+    const empty = document.getElementById('emptyRow');
+    tbody.querySelectorAll('tr:not(#emptyRow)').forEach(r=>r.remove());
+
+    const filtered = projects.filter(p => p.dir === currentDir);
+
+    if (filtered.length === 0) {
+        empty.style.display = '';
+        return;
+    }
+    empty.style.display = 'none';
+
+    filtered.forEach((p, i) => {
+        const sc = p.stat==='PROCESSING'?'s-processing':p.stat==='COMPLETE'?'s-complete':'s-pending';
+        const shortUrl = p.vid.length > 28 ? p.vid.substring(0,28)+'…' : p.vid;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="code-cell">${p.code}</td>
+            <td><a href="${p.vid}" target="_blank" style="color:#555;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#c9a84c'" onmouseout="this.style.color='#555'">${shortUrl} ↗</a></td>
+            <td><button class="btn-act">Edit</button> <button class="btn-act">↓</button></td>
+            <td><button class="btn-act">Edit</button> <button class="btn-act">↓</button></td>
+            <td><button class="btn-act">↑ Upload</button></td>
+            <td><button class="btn-act">↑ Upload</button></td>
+            <td><span class="status-badge ${sc}">${p.stat}</span></td>
+            <td><button class="btn-act btn-del" onclick="deleteProject(${projects.indexOf(p)})">✕</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// ── KEYBOARD ──
+document.getElementById('tkn').addEventListener('keydown', e => { if(e.key==='Enter') verifyToken(); });
+document.addEventListener('keydown', e => {
+    if (e.key==='Enter' && document.getElementById('s2').style.display!=='none') verifyOTP();
+});
+</script>
+</body>
+</html>
