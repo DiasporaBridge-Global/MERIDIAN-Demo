@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MERIDIAN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --gold: #e8c96d;
+            --gold-bright: #f5e09a;
+            --gold-dim: #a07c35;
+            --gold-glow: rgba(232,201,109,0.4);
+            --teal: #00e5cc;
+            --violet: #b57aff;
+            --rose: #ff6eb4;
+            --sapphire: #4fc3ff;
+            --obsidian: #05050f;
+            --glass: rgba(8,8,20,0.85);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--obsidian);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── NEBULA ── */
+        #nebula {
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 15% 25%, rgba(181,122,255,0.09) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 85% 75%, rgba(0,229,204,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 50% 50%, rgba(232,201,109,0.05) 0%, transparent 70%),
+                #05050f;
+        }
+
+        #cosmos { position: fixed; inset: 0; z-index: 1; }
+
+        /* ── VAULT WRAPPER ── */
+        #vault-wrapper {
+            position: relative; z-index: 10;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 16px;
+        }
+
+        /* ── VAULT CARD ── */
+        #vault {
+            background: var(--glass);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 28px;
+            padding: 50px 26px 44px;
+            width: 100%; max-width: 440px;
+            text-align: center;
+            position: relative; overflow: hidden;
+            animation: vaultPulse 5s ease-in-out infinite;
+        }
+        @keyframes vaultPulse {
+            0%,100% { box-shadow: 0 0 0 1.5px rgba(232,201,109,0.4), 0 0 50px rgba(232,201,109,0.12), 0 0 100px rgba(181,122,255,0.08), inset 0 0 80px rgba(0,0,0,0.5); }
+            50%      { box-shadow: 0 0 0 1.5px rgba(0,229,204,0.45), 0 0 70px rgba(0,229,204,0.14), 0 0 120px rgba(232,201,109,0.08), inset 0 0 80px rgba(0,0,0,0.5); }
+        }
+
+        /* Floral corners */
+        .corner { position: absolute; width: 64px; height: 64px; }
+        .corner-tl { top: 0; left: 0; }
+        .corner-tr { top: 0; right: 0; transform: scaleX(-1); }
+        .corner-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+        .corner-br { bottom: 0; right: 0; transform: scale(-1,-1); }
+
+        /* Scan line */
+        .scan-line {
+            position: absolute; top: -5%; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0,229,204,0.5), rgba(232,201,109,0.5), transparent);
+            animation: scan 5s ease-in-out infinite; z-index: 2;
+        }
+        @keyframes scan { 0%{top:-5%;opacity:0;} 10%{opacity:1;} 90%{opacity:1;} 100%{top:105%;opacity:0;} }
+
+        .vault-inner { position: relative; z-index: 3; }
+
+        /* ── TITLE ── */
+        .meridian-title {
+            font-family: 'Syncopate', sans-serif;
+            font-size: 38px; font-weight: 700; letter-spacing: 10px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f5e09a 0%, #e8c96d 45%, #00e5cc 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            filter: drop-shadow(0 0 24px rgba(232,201,109,0.7));
+        }
+
+        .meridian-sub {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 15px; letter-spacing: 3px;
+            color: rgba(255,255,255,0.6); margin-bottom: 34px; font-style: italic;
+        }
+
+        /* ── STEPS ── */
+        .step-row { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:8px; }
+        .step-dot {
+            width:12px; height:12px; border-radius:50%;
+            background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+            transition:all 0.5s ease;
+        }
+        .step-line { width:44px; height:1px; background:rgba(255,255,255,0.1); transition:all 0.5s ease; }
+        .step-dot.active {
+            background:var(--gold); border-color:var(--gold);
+            box-shadow:0 0 16px var(--gold), 0 0 32px rgba(232,201,109,0.4);
+            transform:scale(1.25);
+        }
+        .step-dot.done { background:var(--teal); border-color:var(--teal); box-shadow:0 0 12px var(--teal); }
+        .step-line.done { background:linear-gradient(90deg,var(--gold),var(--teal)); }
+
+        .step-label {
+            font-size:13px; letter-spacing:4px; color:rgba(255,255,255,0.5);
+            margin-bottom:28px; text-transform:uppercase; font-weight:500;
+        }
+
+        /* ── DIVIDER ── */
+        .vault-divider {
+            height:1px; margin:24px 0;
+            background:linear-gradient(90deg,transparent,rgba(232,201,109,0.35),rgba(0,229,204,0.35),transparent);
+        }
+
+        /* ── INPUT ── */
+        .input-wrap { position:relative; margin-bottom:22px; }
+        .input-wrap label {
+            position:absolute; top:-11px; left:14px;
+            font-size:12px; letter-spacing:2px; color:var(--gold);
+            background:#08081a; padding:0 8px;
+            text-transform:uppercase; font-weight:700; z-index:2;
+        }
+        input[type="password"],
+        input[type="text"],
+        input[type="url"],
+        input[type="tel"] {
+            width:100%; padding:19px 18px;
+            background:rgba(255,255,255,0.04);
+            border:1.5px solid rgba(232,201,109,0.35);
+            border-radius:14px; color:#fff;
+            font-family:'Rajdhani',sans-serif;
+            font-size:18px; letter-spacing:3px; font-weight:600;
+            outline:none; transition:all 0.3s ease;
+        }
+        input:focus {
+            border-color:var(--teal);
+            box-shadow:0 0 0 3px rgba(0,229,204,0.12), 0 0 24px rgba(0,229,204,0.1);
+            background:rgba(0,229,204,0.04);
+        }
+        input.error {
+            border-color:var(--rose);
+            box-shadow:0 0 0 3px rgba(255,110,180,0.15);
+            animation:shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%,100%{transform:translateX(0);}
+            20%{transform:translateX(-8px);}
+            40%{transform:translateX(8px);}
+            60%{transform:translateX(-5px);}
+            80%{transform:translateX(5px);}
+        }
+
+        /* ── OTP ── */
+        .otp-grid { display:flex; gap:8px; justify-content:center; margin-bottom:16px; }
+        .otp-grid input {
+            width:46px; padding:16px 0; text-align:center;
+            font-size:24px; font-weight:700; letter-spacing:0; border-radius:12px;
+        }
+        .otp-hint { font-size:14px; color:rgba(255,255,255,0.5); letter-spacing:1px; margin-bottom:20px; line-height:2; }
+        .otp-hint .demo-code {
+            color:var(--teal); display:block; margin-top:4px;
+            font-size:18px; letter-spacing:6px; font-weight:700;
+            text-shadow:0 0 12px rgba(0,229,204,0.5);
+        }
+
+        /* ── BUTTON ── */
+        .btn-gold {
+            width:100%; padding:19px;
+            background:linear-gradient(135deg,#f5e09a 0%,#c9a84c 40%,#00e5cc 100%);
+            background-size:200% 200%;
+            border:none; border-radius:14px;
+            color:#05050f; font-family:'Syncopate',sans-serif;
+            font-weight:700; font-size:13px; letter-spacing:4px;
+            cursor:pointer; text-transform:uppercase;
+            transition:all 0.4s ease; position:relative; overflow:hidden;
+            box-shadow:0 6px 24px rgba(232,201,109,0.35);
+        }
+        .btn-gold:hover { box-shadow:0 10px 40px rgba(0,229,204,0.35); transform:translateY(-2px); background-position:right center; }
+        .btn-gold:active { transform:translateY(1px); }
+        @keyframes spin { to{transform:rotate(360deg);} }
+        .btn-gold.loading { color:transparent; pointer-events:none; }
+        .btn-gold.loading::after {
+            content:''; position:absolute; top:50%; left:50%;
+            width:20px; height:20px; margin:-10px 0 0 -10px;
+            border:2px solid rgba(0,0,0,0.2); border-top-color:#000;
+            border-radius:50%; animation:spin 0.7s linear infinite;
+        }
+
+        /* Ripple */
+        .ripple {
+            position:absolute; border-radius:50%; transform:scale(0);
+            animation:rippleAnim 0.6s linear; background:rgba(255,255,255,0.25); pointer-events:none;
+        }
+        @keyframes rippleAnim { to{transform:scale(4);opacity:0;} }
+
+        .error-msg {
+            color:var(--rose); font-size:13px; letter-spacing:2px;
+            margin-bottom:14px; display:none; text-transform:uppercase; font-weight:600;
+        }
+        .back-link {
+            font-size:13px; color:rgba(255,255,255,0.35); letter-spacing:2px;
+            margin-top:18px; cursor:pointer; text-transform:uppercase;
+            display:inline-block; transition:color 0.3s;
+        }
+        .back-link:hover { color:var(--teal); }
+
+        /* Demo token hint */
+        .demo-hint {
+            margin-top:16px; font-size:13px;
+            color:rgba(255,255,255,0.3); letter-spacing:2px; line-height:2;
+        }
+        .demo-hint span { color:var(--gold); font-weight:700; letter-spacing:4px; font-size:15px; }
+
+        /* Step panels */
+        #step1,#step2 { display:none; }
+        #step1.active,#step2.active { display:block; animation:fadeUp 0.4s ease; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+
+        /* Burst */
+        #burst {
+            display:none; position:fixed; inset:0; z-index:100; pointer-events:none;
+            background:radial-gradient(circle,rgba(232,201,109,0.3) 0%,rgba(0,229,204,0.15) 40%,transparent 70%);
+        }
+        @keyframes burstAnim {
+            0%{opacity:0;transform:scale(0.3);}
+            40%{opacity:1;transform:scale(1.1);}
+            100%{opacity:0;transform:scale(2.5);}
+        }
+
+        /* ══════════════════════
+           DASHBOARD
+        ══════════════════════ */
+        #dashboard { display:none; position:relative; z-index:10; min-height:100vh; animation:fadeUp 0.6s ease; }
+
+        /* Demo Banner */
+        #demo-banner {
+            background:linear-gradient(135deg,rgba(181,122,255,0.15),rgba(0,229,204,0.1),rgba(232,201,109,0.1));
+            border-bottom:1px solid rgba(232,201,109,0.2);
+            padding:14px 18px; display:none;
+            align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+            animation:shimmerBanner 5s ease-in-out infinite;
+        }
+        @keyframes shimmerBanner {
+            0%,100%{background:linear-gradient(135deg,rgba(181,122,255,0.15),rgba(0,229,204,0.1),rgba(232,201,109,0.1));}
+            50%{background:linear-gradient(135deg,rgba(232,201,109,0.12),rgba(181,122,255,0.15),rgba(0,229,204,0.12));}
+        }
+        .demo-label {
+            font-family:'Syncopate',sans-serif; font-size:10px;
+            letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:3px;
+        }
+        .demo-notice { font-size:13px; color:rgba(255,255,255,0.5); }
+        .btn-request {
+            font-family:'Syncopate',sans-serif; font-size:9px; letter-spacing:2px;
+            color:#05050f;
+            background:linear-gradient(135deg,var(--gold),var(--teal));
+            border:none; border-radius:8px; padding:11px 20px;
+            cursor:pointer; text-transform:uppercase; white-space:nowrap;
+            text-decoration:none; display:inline-block; font-weight:700;
+            box-shadow:0 4px 18px rgba(0,229,204,0.3); transition:all 0.3s;
+        }
+        .btn-request:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,229,204,0.4); }
+
+        /* Dash Header */
+        .dash-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 18px;
+            border-bottom:1px solid rgba(232,201,109,0.12);
+            background:rgba(8,8,20,0.92); backdrop-filter:blur(20px);
+            position:sticky; top:0; z-index:50;
+        }
+        .dash-brand {
+            font-family:'Syncopate',sans-serif; font-size:20px;
+            font-weight:700; letter-spacing:5px;
+            background:linear-gradient(135deg,var(--gold),var(--teal));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+            filter:drop-shadow(0 0 10px rgba(232,201,109,0.4));
+        }
+        .dash-meta { display:flex; align-items:center; gap:10px; }
+        .session-box {
+            font-size:14px; color:var(--teal); letter-spacing:1px; font-weight:700;
+            background:rgba(0,229,204,0.08); border:1px solid rgba(0,229,204,0.25);
+            border-radius:8px; padding:7px 14px;
+        }
+        .btn-sm {
+            font-family:'Syncopate',sans-serif; font-size:9px; letter-spacing:2px;
+            border-radius:8px; padding:9px 14px; cursor:pointer; border:none;
+            font-weight:700; transition:all 0.3s; text-transform:uppercase;
+        }
+        .btn-new {
+            background:linear-gradient(135deg,var(--gold),#a07c35);
+            color:#05050f; box-shadow:0 2px 14px rgba(232,201,109,0.3);
+        }
+        .btn-new:hover { box-shadow:0 6px 24px rgba(232,201,109,0.45); transform:translateY(-1px); }
+        .btn-lock {
+            background:rgba(255,110,180,0.1); color:var(--rose);
+            border:1px solid rgba(255,110,180,0.3);
+        }
+        .btn-lock:hover { background:rgba(255,110,180,0.2); }
+
+        /* Direction Toggle */
+        .dir-toggle {
+            display:flex; margin:16px 16px 0;
+            border-radius:14px; overflow:hidden;
+            border:1px solid rgba(232,201,109,0.2);
+            background:rgba(255,255,255,0.02);
+        }
+        .dir-btn {
+            flex:1; padding:15px 8px; text-align:center;
+            font-size:14px; font-weight:600; letter-spacing:1px;
+            cursor:pointer; transition:all 0.3s; color:rgba(255,255,255,0.4);
+        }
+        .dir-btn.active {
+            background:linear-gradient(135deg,rgba(232,201,109,0.18),rgba(0,229,204,0.12));
+            color:var(--gold); border-bottom:2px solid var(--gold);
+            text-shadow:0 0 14px rgba(232,201,109,0.5);
+        }
+
+        /* Table */
+        .scroll-box {
+            overflow-x:auto; margin:16px;
+            border-radius:16px; border:1px solid rgba(232,201,109,0.15);
+            background:rgba(8,8,20,0.7); backdrop-filter:blur(20px);
+        }
+        .scroll-box::-webkit-scrollbar { height:3px; }
+        .scroll-box::-webkit-scrollbar-thumb { background:var(--gold-dim); border-radius:2px; }
+
+        table { width:100%; border-collapse:collapse; min-width:700px; }
+        thead tr {
+            background:linear-gradient(135deg,rgba(232,201,109,0.1),rgba(0,229,204,0.06));
+            border-bottom:1px solid rgba(232,201,109,0.2);
+        }
+        th {
+            padding:15px 14px; font-size:11px; letter-spacing:2px;
+            text-transform:uppercase; color:var(--gold); font-weight:700;
+            white-space:nowrap; text-align:left;
+        }
+        td {
+            padding:14px; font-size:14px; color:rgba(255,255,255,0.75);
+            border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle;
+        }
+        tbody tr { transition:all 0.2s; }
+        tbody tr:hover {
+            background:linear-gradient(135deg,rgba(232,201,109,0.06),rgba(0,229,204,0.04));
+            border-left:3px solid var(--gold);
+        }
+
+        /* Badges */
+        .badge {
+            font-size:10px; letter-spacing:2px; padding:5px 14px;
+            border-radius:20px; font-weight:700; text-transform:uppercase;
+            white-space:nowrap; display:inline-block;
+        }
+        .badge-pending { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.15); }
+        .badge-processing {
+            background:rgba(232,201,109,0.12); color:var(--gold);
+            border:1px solid rgba(232,201,109,0.4);
+            animation:badgePulse 2s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%,100%{box-shadow:0 0 10px rgba(232,201,109,0.15);}
+            50%{box-shadow:0 0 22px rgba(232,201,109,0.35);}
+        }
+        .badge-complete {
+            background:rgba(0,229,204,0.12); color:var(--teal);
+            border:1px solid rgba(0,229,204,0.4); box-shadow:0 0 12px rgba(0,229,204,0.15);
+        }
+
+        /* Action buttons */
+        .act-btn {
+            font-size:11px; padding:7px 12px; border-radius:7px; border:none;
+            cursor:pointer; font-weight:600; letter-spacing:1px;
+            transition:all 0.2s; margin:2px; display:inline-block;
+        }
+        .act-edit { background:rgba(181,122,255,0.15); color:var(--violet); border:1px solid rgba(181,122,255,0.3); }
+        .act-edit:hover { background:rgba(181,122,255,0.28); }
+        .act-dl { background:rgba(0,229,204,0.1); color:var(--teal); border:1px solid rgba(0,229,204,0.28); }
+        .act-dl:hover { background:rgba(0,229,204,0.22); }
+        .act-del { background:rgba(255,110,180,0.1); color:var(--rose); border:1px solid rgba(255,110,180,0.28); }
+        .act-del:hover { background:rgba(255,110,180,0.22); }
+        .act-up { background:rgba(79,195,255,0.1); color:var(--sapphire); border:1px solid rgba(79,195,255,0.28); }
+        .act-up:hover { background:rgba(79,195,255,0.22); }
+
+        .empty-state {
+            padding:50px 20px; color:rgba(255,255,255,0.25);
+            font-size:15px; letter-spacing:2px; text-align:center;
+        }
+
+        /* Modal */
+        .modal-bg {
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.75); backdrop-filter:blur(10px);
+            z-index:200; justify-content:center; align-items:center; padding:20px;
+        }
+        .modal-bg.open { display:flex; }
+        .modal-card {
+            background:rgba(8,8,28,0.97);
+            border:1px solid rgba(232,201,109,0.3);
+            border-radius:24px; padding:38px 26px; width:100%; max-width:420px;
+            box-shadow:0 0 60px rgba(232,201,109,0.12),0 0 100px rgba(181,122,255,0.08);
+            animation:fadeUp 0.3s ease;
+        }
+        .modal-title {
+            font-family:'Syncopate',sans-serif; font-size:14px;
+            letter-spacing:3px; color:var(--gold); margin-bottom:28px; text-transform:uppercase;
+        }
+        .modal-row { display:flex; gap:12px; margin-top:20px; }
+        .btn-cancel {
+            flex:1; padding:14px;
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12);
+            border-radius:10px; color:rgba(255,255,255,0.5);
+            font-family:'Syncopate',sans-serif; font-size:9px; letter-spacing:2px;
+            cursor:pointer; text-transform:uppercase; transition:all 0.3s;
+        }
+        .btn-cancel:hover { border-color:var(--rose); color:var(--rose); }
+        select {
+            width:100%; padding:15px 16px;
+            background:rgba(255,255,255,0.04);
+            border:1.5px solid rgba(232,201,109,0.3);
+            border-radius:12px; color:#fff;
+            font-family:'Rajdhani',sans-serif; font-size:16px;
+            outline:none; margin-bottom:8px; appearance:none;
+        }
+        select option { background:#10101e; }
+    </style>
+</head>
+<body>
+
+<div id="nebula"></div>
+<canvas id="cosmos"></canvas>
+<div id="burst"></div>
+
+<!-- VAULT -->
+<div id="vault-wrapper">
+    <div id="vault">
+        <div class="scan-line"></div>
+
+        <!-- Floral SVG Corners -->
+        <svg class="corner corner-tl" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L58 2" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <path d="M2 2 L2 58" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <circle cx="14" cy="14" r="5" fill="none" stroke="rgba(0,229,204,0.5)" stroke-width="1"/>
+            <path d="M14 7 Q20 14 14 21 Q8 14 14 7Z" fill="rgba(232,201,109,0.18)" stroke="rgba(232,201,109,0.45)" stroke-width="0.8"/>
+            <circle cx="9" cy="9" r="2" fill="rgba(0,229,204,0.55)"/>
+            <circle cx="22" cy="7" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="7" cy="22" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="26" cy="14" r="1" fill="rgba(255,110,180,0.5)"/>
+            <circle cx="14" cy="26" r="1" fill="rgba(255,110,180,0.5)"/>
+        </svg>
+        <svg class="corner corner-tr" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L58 2" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <path d="M2 2 L2 58" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <circle cx="14" cy="14" r="5" fill="none" stroke="rgba(0,229,204,0.5)" stroke-width="1"/>
+            <path d="M14 7 Q20 14 14 21 Q8 14 14 7Z" fill="rgba(232,201,109,0.18)" stroke="rgba(232,201,109,0.45)" stroke-width="0.8"/>
+            <circle cx="9" cy="9" r="2" fill="rgba(0,229,204,0.55)"/>
+            <circle cx="22" cy="7" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="7" cy="22" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="26" cy="14" r="1" fill="rgba(255,110,180,0.5)"/>
+            <circle cx="14" cy="26" r="1" fill="rgba(255,110,180,0.5)"/>
+        </svg>
+        <svg class="corner corner-bl" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L58 2" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <path d="M2 2 L2 58" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <circle cx="14" cy="14" r="5" fill="none" stroke="rgba(0,229,204,0.5)" stroke-width="1"/>
+            <path d="M14 7 Q20 14 14 21 Q8 14 14 7Z" fill="rgba(232,201,109,0.18)" stroke="rgba(232,201,109,0.45)" stroke-width="0.8"/>
+            <circle cx="9" cy="9" r="2" fill="rgba(0,229,204,0.55)"/>
+            <circle cx="22" cy="7" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="7" cy="22" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="26" cy="14" r="1" fill="rgba(255,110,180,0.5)"/>
+            <circle cx="14" cy="26" r="1" fill="rgba(255,110,180,0.5)"/>
+        </svg>
+        <svg class="corner corner-br" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L58 2" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <path d="M2 2 L2 58" stroke="rgba(232,201,109,0.45)" stroke-width="1.2"/>
+            <circle cx="14" cy="14" r="5" fill="none" stroke="rgba(0,229,204,0.5)" stroke-width="1"/>
+            <path d="M14 7 Q20 14 14 21 Q8 14 14 7Z" fill="rgba(232,201,109,0.18)" stroke="rgba(232,201,109,0.45)" stroke-width="0.8"/>
+            <circle cx="9" cy="9" r="2" fill="rgba(0,229,204,0.55)"/>
+            <circle cx="22" cy="7" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="7" cy="22" r="1.5" fill="rgba(181,122,255,0.65)"/>
+            <circle cx="26" cy="14" r="1" fill="rgba(255,110,180,0.5)"/>
+            <circle cx="14" cy="26" r="1" fill="rgba(255,110,180,0.5)"/>
+        </svg>
+
+        <div class="vault-inner">
+            <div class="meridian-title">MERIDIAN</div>
+            <div class="meridian-sub">Secure Translation Delivery Node</div>
+
+            <div class="step-row">
+                <div class="step-dot active" id="sd1"></div>
+                <div class="step-line" id="sl1"></div>
+                <div class="step-dot" id="sd2"></div>
+            </div>
+            <div class="step-label" id="slabel">Token Verification</div>
+
+            <!-- STEP 1 -->
+            <div id="step1" class="active">
+                <div class="vault-divider"></div>
+                <div class="input-wrap">
+                    <label>Access Token</label>
+                    <input type="password" id="tkn" placeholder="Enter your token" autocomplete="off">
+                </div>
+                <div class="error-msg" id="terr">⚠ Invalid Token — Access Denied</div>
+                <button class="btn-gold" id="tbtn" onclick="verifyToken()">Initialize</button>
+                <div class="demo-hint">DEMO TOKEN<br><span>MERIDIAN-2026</span></div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div id="step2">
+                <div class="vault-divider"></div>
+                <div class="otp-hint">
+                    Enter 6-digit authentication code
+                    <span class="demo-code">4 8 1 2 3 6</span>
+                </div>
+                <div class="otp-grid">
+                    <input type="tel" maxlength="1" class="otp-box" id="o1">
+                    <input type="tel" maxlength="1" class="otp-box" id="o2">
+                    <input type="tel" maxlength="1" class="otp-box" id="o3">
+                    <input type="tel" maxlength="1" class="otp-box" id="o4">
+                    <input type="tel" maxlength="1" class="otp-box" id="o5">
+                    <input type="tel" maxlength="1" class="otp-box" id="o6">
+                </div>
+                <div class="error-msg" id="oerr">⚠ Invalid Code — Access Denied</div>
+                <button class="btn-gold" id="obtn" onclick="verifyOTP()">Authenticate</button>
+                <div class="back-link" onclick="toStep1()">← Back</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+    <div id="demo-banner">
+        <div>
+            <div class="demo-label">⬡ Demo Access — Not For Operational Use</div>
+            <div class="demo-notice">This is a demonstration portal. No real data is stored or transmitted.</div>
+        </div>
+        <a class="btn-request" href="mailto:diasporabridge.global@gmail.com?subject=MERIDIAN%20Full%20Access%20Request">Request Full Access</a>
+    </div>
+
+    <div class="dash-header">
+        <div class="dash-brand">Meridian</div>
+        <div class="dash-meta">
+            <div class="session-box">⏱ <span id="stimer">30:00</span></div>
+            <button class="btn-sm btn-new" onclick="openModal()">+ New</button>
+            <button class="btn-sm btn-lock" onclick="doLogout()">Lock</button>
+        </div>
+    </div>
+
+    <div class="dir-toggle">
+        <div class="dir-btn active" id="dir-ta" onclick="setDir('ta')">Tamil → English</div>
+        <div class="dir-btn" id="dir-et" onclick="setDir('et')">English → Tamil</div>
+    </div>
+
+    <div class="scroll-box">
+        <table>
+            <thead>
+                <tr>
+                    <th>Project</th><th>Source Video</th><th>English Text</th>
+                    <th>Tamil Text</th><th>Eng SRT</th><th>Tam SRT</th>
+                    <th>Status</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ptable">
+                <tr id="emptyRow">
+                    <td colspan="8"><div class="empty-state">✦ No Active Projects — Initialize New Transfer</div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+    <div class="modal-card">
+        <div class="modal-title">Initialize New Project</div>
+        <div class="input-wrap"><label>Project Code</label><input type="text" id="mc" placeholder="e.g. DB-002"></div>
+        <div class="input-wrap"><label>Source Video URL</label><input type="url" id="mv" placeholder="https://..."></div>
+        <select id="ms">
+            <option value="PENDING">Pending</option>
+            <option value="PROCESSING">Processing</option>
+            <option value="COMPLETE">Complete</option>
+        </select>
+        <div class="modal-row">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-gold" style="flex:1;padding:14px;" onclick="addProject()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const VALID_TOKEN = 'MERIDIAN-2026';
+const VALID_OTP   = '481236';
+const IS_DEMO     = true;
+
+let projects = [], sessionSec = 1800, sessionTick, currentDir = 'ta';
+
+// ── PARTICLES ──
+const canvas = document.getElementById('cosmos');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], mouse = {x:-999,y:-999};
+
+const COLORS = [
+    {r:232,g:201,b:109}, {r:232,g:201,b:109}, {r:232,g:201,b:109},
+    {r:0,g:229,b:204}, {r:0,g:229,b:204},
+    {r:181,g:122,b:255},
+    {r:255,g:255,b:255},
+    {r:79,g:195,b:255},
+    {r:255,g:110,b:180},
+];
+
+function resizeCanvas() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+function initParticles() {
+    particles = [];
+    const count = Math.floor((W * H) / 4500);
+    for (let i = 0; i < count; i++) {
+        const col = COLORS[Math.floor(Math.random() * COLORS.length)];
+        particles.push({
+            x: Math.random()*W, y: Math.random()*H, ox:0, oy:0,
+            vx:(Math.random()-0.5)*0.18, vy:(Math.random()-0.5)*0.18,
+            r: Math.random()*2.8+0.8,
+            alpha: Math.random()*0.75+0.25,
+            col, tw: Math.random()*Math.PI*2, tws: Math.random()*0.025+0.005
+        });
+    }
+}
+
+function drawParticles() {
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p => {
+        p.tw += p.tws;
+        const a = p.alpha*(0.55+0.45*Math.sin(p.tw));
+        const dx=p.x-mouse.x, dy=p.y-mouse.y, dist=Math.sqrt(dx*dx+dy*dy), rep=130;
+        if (dist<rep && dist>0) { const f=(rep-dist)/rep; p.x+=dx/dist*f*5; p.y+=dy/dist*f*5; }
+        else { p.x+=(p.ox-p.x)*0.022; p.y+=(p.oy-p.y)*0.022; }
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+        p.ox=p.x; p.oy=p.y;
+        // Halo
+        const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*6);
+        g.addColorStop(0,`rgba(${p.col.r},${p.col.g},${p.col.b},${a*0.55})`);
+        g.addColorStop(1,`rgba(${p.col.r},${p.col.g},${p.col.b},0)`);
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r*6,0,Math.PI*2);
+        ctx.fillStyle=g; ctx.fill();
+        // Core
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(${p.col.r},${p.col.g},${p.col.b},${a})`; ctx.fill();
+    });
+    requestAnimationFrame(drawParticles);
+}
+
+document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+document.addEventListener('touchmove',e=>{mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchstart',e=>{mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;},{passive:true});
+document.addEventListener('mouseleave',()=>{mouse.x=-999;mouse.y=-999;});
+window.addEventListener('resize',()=>{resizeCanvas();initParticles();});
+resizeCanvas(); initParticles(); drawParticles();
+
+// ── RIPPLE ──
+function addRipple(e,el){
+    const rect=el.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+    const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+    const rip=document.createElement('span'); rip.classList.add('ripple');
+    const size=Math.max(rect.width,rect.height);
+    rip.style.cssText=`width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px;`;
+    el.appendChild(rip); setTimeout(()=>rip.remove(),700);
+}
+document.querySelectorAll('.btn-gold').forEach(btn=>btn.addEventListener('click',e=>addRipple(e,btn)));
+
+// ── AUTH ──
+function verifyToken(){
+    const val=document.getElementById('tkn').value.trim().toUpperCase();
+    const btn=document.getElementById('tbtn'), err=document.getElementById('terr');
+    err.style.display='none'; btn.classList.add('loading');
+    setTimeout(()=>{
+        btn.classList.remove('loading');
+        if(val===VALID_TOKEN){ toStep2(); }
+        else {
+            document.getElementById('tkn').classList.add('error');
+            err.style.display='block';
+            setTimeout(()=>document.getElementById('tkn').classList.remove('error'),600);
+        }
+    },1200);
+}
+
+function toStep2(){
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+    document.getElementById('sd1').classList.remove('active');
+    document.getElementById('sd1').classList.add('done');
+    document.getElementById('sl1').classList.add('done');
+    document.getElementById('sd2').classList.add('active');
+    document.getElementById('slabel').textContent='Authentication';
+    setTimeout(()=>document.getElementById('o1').focus(),300);
+}
+
+function toStep1(){
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+    document.getElementById('sd2').classList.remove('active');
+    document.getElementById('sd1').classList.remove('done');
+    document.getElementById('sd1').classList.add('active');
+    document.getElementById('sl1').classList.remove('done');
+    document.getElementById('slabel').textContent='Token Verification';
+    document.getElementById('oerr').style.display='none';
+    ['o1','o2','o3','o4','o5','o6'].forEach(id=>document.getElementById(id).value='');
+}
+
+document.querySelectorAll('.otp-box').forEach((box,i,boxes)=>{
+    box.addEventListener('input',()=>{ if(box.value&&i<boxes.length-1)boxes[i+1].focus(); });
+    box.addEventListener('keydown',e=>{ if(e.key==='Backspace'&&!box.value&&i>0)boxes[i-1].focus(); });
+});
+
+function verifyOTP(){
+    const otp=['o1','o2','o3','o4','o5','o6'].map(id=>document.getElementById(id).value).join('');
+    const btn=document.getElementById('obtn'), err=document.getElementById('oerr');
+    err.style.display='none'; btn.classList.add('loading');
+    setTimeout(()=>{
+        btn.classList.remove('loading');
+        if(otp===VALID_OTP){ launchDashboard(); }
+        else {
+            document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.add('error');});
+            err.style.display='block';
+            setTimeout(()=>{
+                document.querySelectorAll('.otp-box').forEach(b=>b.classList.remove('error'));
+                document.getElementById('o1').focus();
+            },600);
+        }
+    },1000);
+}
+
+function launchDashboard(){
+    const burst=document.getElementById('burst');
+    burst.style.display='block';
+    burst.style.animation='burstAnim 0.9s ease forwards';
+    setTimeout(()=>{ burst.style.display='none'; burst.style.animation=''; },950);
+    setTimeout(()=>{
+        document.getElementById('vault-wrapper').style.display='none';
+        const dash=document.getElementById('dashboard');
+        dash.style.display='block';
+        if(IS_DEMO) document.getElementById('demo-banner').style.display='flex';
+        startSession();
+    },600);
+}
+
+function startSession(){
+    sessionTick=setInterval(()=>{
+        sessionSec--;
+        const m=String(Math.floor(sessionSec/60)).padStart(2,'0');
+        const s=String(sessionSec%60).padStart(2,'0');
+        document.getElementById('stimer').textContent=`${m}:${s}`;
+        if(sessionSec<=0){ clearInterval(sessionTick); doLogout(); }
+    },1000);
+}
+
+function doLogout(){
+    clearInterval(sessionTick); sessionSec=1800;
+    document.getElementById('dashboard').style.display='none';
+    document.getElementById('demo-banner').style.display='none';
+    document.getElementById('vault-wrapper').style.display='flex';
+    toStep1(); document.getElementById('tkn').value='';
+}
+
+function setDir(d){
+    currentDir=d;
+    document.getElementById('dir-ta').classList.toggle('active',d==='ta');
+    document.getElementById('dir-et').classList.toggle('active',d==='et');
+    renderTable();
+}
+
+function renderTable(){
+    const tbody=document.getElementById('ptable');
+    const filtered=projects.filter(p=>p.dir===currentDir);
+    if(!filtered.length){
+        tbody.innerHTML='<tr><td colspan="8"><div class="empty-state">✦ No Active Projects — Initialize New Transfer</div></td></tr>';
+        return;
+    }
+    tbody.innerHTML=filtered.map(p=>`
+        <tr>
+            <td style="color:var(--gold);font-weight:700;">${p.code}</td>
+            <td><a href="${p.video}" target="_blank" style="color:var(--teal);font-size:13px;">View ↗</a></td>
+            <td><button class="act-btn act-edit">Edit</button><button class="act-btn act-dl">↓ DL</button></td>
+            <td><button class="act-btn act-edit">Edit</button><button class="act-btn act-dl">↓ DL</button></td>
+            <td><button class="act-btn act-up">↑ Upload</button></td>
+            <td><button class="act-btn act-up">↑ Upload</button></td>
+            <td><span class="badge badge-${p.status.toLowerCase()}">${p.status}</span></td>
+            <td><button class="act-btn act-del" onclick="deleteProject('${p.id}')">✕</button></td>
+        </tr>`).join('');
+}
+
+function openModal(){ document.getElementById('modal').classList.add('open'); }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+function addProject(){
+    const code=document.getElementById('mc').value.trim();
+    const video=document.getElementById('mv').value.trim();
+    const status=document.getElementById('ms').value;
+    if(!code) return;
+    projects.push({id:Date.now().toString(),code,video,status,dir:currentDir});
+    document.getElementById('mc').value=''; document.getElementById('mv').value='';
+    closeModal(); renderTable();
+}
+
+function deleteProject(id){ projects=projects.filter(p=>p.id!==id); renderTable(); }
+
+document.getElementById('tkn').addEventListener('keydown',e=>{ if(e.key==='Enter')verifyToken(); });
+
+// Burst keyframe injection
+const style=document.createElement('style');
+style.textContent='@keyframes burstAnim{0%{opacity:0;transform:scale(0.3);}40%{opacity:1;transform:scale(1.1);}100%{opacity:0;transform:scale(2.5);}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
